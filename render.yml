@@ -1,0 +1,39 @@
+services:
+  # ----------------------------------------
+  # Backend Service
+  # ----------------------------------------
+  - type: web
+    name: medical-backend
+    env: docker
+    plan: free
+    region: singapore
+    rootDir: .
+    dockerContext: ./BE
+    dockerfilePath: ./BE/Dockerfile
+    numInstances: 1
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: OPENAI_API_KEY
+        sync: false
+
+  # ----------------------------------------
+  # Frontend Service
+  # ----------------------------------------
+  - type: web
+    name: medical-frontend
+    env: docker
+    plan: free
+    region: singapore
+    rootDir: .
+    dockerContext: ./FE
+    dockerfilePath: ./FE/Dockerfile
+    numInstances: 1
+    envVars:
+      - key: PORT
+        value: 8501
+      - key: API_URL
+        fromService:
+          type: web
+          name: medical-backend
+          property: url
