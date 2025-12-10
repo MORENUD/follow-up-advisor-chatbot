@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from pydantic import BaseModel
 from typing import Dict, Any
 from langchain_core.messages import HumanMessage
-from graph import app as graph_app  # Import กราฟจากไฟล์ภายนอก
+from graph import app as graph_app
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

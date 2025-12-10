@@ -6,6 +6,7 @@ try:
     output_file = "my_medical_graph.png"
     with open(output_file, "wb") as f:
         f.write(png_data)
+        
     
     print(f"✅ Graph successfully saved to: {output_file}")
     print("You can view the file now!")
