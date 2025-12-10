@@ -12,7 +12,7 @@ class TopicClassifier(BaseModel):
     )
 
 class Router(BaseModel):
-    next: Literal["MedicationAgent", "ExerciseAgent", "DietAgent", "TransportAgent", "GeneralChatAgent", "FINISH"]
+    next: Literal["MedicationAgent", "ExerciseAgent", "DietAgent", "TransportAgent", "AppointmentAgent", "GeneralChatAgent", "FINISH"]
 
 # --- Chains ---
 
@@ -35,16 +35,24 @@ topic_check_chain = (
 
 # 2. Supervisor
 supervisor_prompt = (
-    "Route user input to the right agent:\n"
-    "- Symptoms (Fever, Pain, Infection) -> MedicationAgent\n"
-    "- Weakness, Fatigue, Rest, Activity -> ExerciseAgent\n"
-    "- Hunger, Thirst, Menu, Eating -> DietAgent\n"
-    "- Travel, Driving, Flying, Commute, Car -> TransportAgent\n"
-    "- Hello, Thanks, Sadness, Small talk -> GeneralChatAgent\n"
-    "- Bye -> FINISH"
+    "You are a router. Choose the agent that best matches the user's **PRIMARY INTENT**.\n"
+    "ROUTING GUIDELINES:\n"
+    "1. **MedicationAgent**: Drugs, dosage, side effects.\n"
+    "2. **ExerciseAgent**: Workout, physical activity, tiredness.\n"
+    "3. **DietAgent**: Food, hunger, menu, eating.\n"
+    "4. **TransportAgent**: Travel, driving, flying, carrying items.\n"
+    "5. **AppointmentAgent**: Scheduling, seeing doctor, postpone, change date.\n"
+    "6. **GeneralChatAgent**: Greetings, emotions, small talk.\n\n"
+    
+    "CONFLICT HANDLING:\n"
+    "- 'Can I exercise after taking Insulin?' -> **ExerciseAgent** (Action is exercise)\n"
+    "- 'Move my appointment to next week' -> **AppointmentAgent**\n"
 )
 
 supervisor_chain = (
-    ChatPromptTemplate.from_messages([("system", supervisor_prompt), MessagesPlaceholder("messages")])
+    ChatPromptTemplate.from_messages([
+        ("system", supervisor_prompt), 
+        MessagesPlaceholder("messages")
+    ])
     | llm.with_structured_output(Router)
 )

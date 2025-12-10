@@ -18,6 +18,7 @@ def check_alert_node(state: AgentState):
         warning_msg = (
             f"🚨 **แจ้งเตือนความปลอดภัย:** ระดับความเสี่ยงของคุณสูง ({alert_val}) \n"
             "เพื่อความปลอดภัยสูงสุด **กรุณาไปพบแพทย์โดยด่วนนะครับ** ทางเราเป็นห่วงสุขภาพของคุณครับ"
+            "โดยเราได้เลื่อนนัดให้คุณแล้ว สามารถเข้าไปตรวจสอบได้ที่ xxx.com"
         )
         return {"messages": [AIMessage(content=warning_msg)], "next": "END"}
     
@@ -73,7 +74,7 @@ graph.set_entry_point("check_alert")
 graph.add_conditional_edges("check_alert", lambda x: x["next"], {"topic": "topic", "END": END})
 graph.add_conditional_edges("topic", lambda x: x["next"], {"supervisor": "supervisor", "END": END})
 
-# Router Edges (รวมถึง TransportAgent ที่เพิ่มมา)
+# Router Edges
 graph.add_conditional_edges("supervisor", lambda x: x["next"], {**{n: n for n in agent_runnables}, "END": END})
 
 # Return edges
