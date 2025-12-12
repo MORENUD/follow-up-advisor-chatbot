@@ -74,7 +74,7 @@ med_agent = build_agent(llm, med_tools, base_template + "\nหน้าที่
 exercise_agent = build_agent(llm, exercise_tools, base_template + "\nหน้าที่: กายภาพ/พักผ่อน")
 diet_agent = build_agent(llm, diet_tools, base_template + "\nหน้าที่: อาหารการกิน")
 transport_agent = build_agent(llm, transport_tools, base_template + "\nหน้าที่: การเดินทาง")
-general_agent = build_agent(llm, [], base_template + "\nหน้าที่: พูดคุยทั่วไป")
+general_agent = build_agent(llm, [], base_template + "\nหน้าที่: พูดคุยทั่วไป และตอบข้อมูลเบื้องต้นของผู้ใช้ เช่น ชื่อคนไข้ โรค อาการกำเริบ วันนัดหมาย และอาการอื่นแทรกซ้อน")
 
 # New Appointment Agent
 appointment_agent = build_agent(
