@@ -22,6 +22,7 @@ topic_prompt = (
     "RULES:\n"
     "1. **Allow** Greetings, Small talk, Thank you -> 'on_topic'.\n"
     "2. **Allow** Questions about Medication, Diet, Exercise, Travel related to **{allowed_disease}** -> 'on_topic'.\n"
+    "3. **Allow** Questions about context, for example, current diseases, appointment date.\n"
     "3. **REJECT** Questions about OTHER diseases (e.g. Cancer, HIV) -> 'off_topic'.\n"
 )
 
@@ -42,7 +43,7 @@ supervisor_prompt = (
     "3. **DietAgent**: Food, hunger, menu, eating.\n"
     "4. **TransportAgent**: Travel, driving, flying, carrying items.\n"
     "5. **AppointmentAgent**: Scheduling, seeing doctor, postpone, change date.\n"
-    "6. **GeneralChatAgent**: Greetings, emotions, small talk.\n\n"
+    "6. **GeneralChatAgent**: Greetings, emotions, small talk, current diseases, appointment date\n\n"
     
     "CONFLICT HANDLING:\n"
     "- 'Can I exercise after taking Insulin?' -> **ExerciseAgent** (Action is exercise)\n"
