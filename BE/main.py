@@ -1,6 +1,7 @@
+import os
 import json
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request  # <--- เพิ่ม Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from contextlib import asynccontextmanager
@@ -9,10 +10,12 @@ from typing import Dict, Any
 from langchain_core.messages import HumanMessage
 from graph import app as graph_app
 
+# --- Lifespan ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     yield 
 
+# --- App Setup ---
 app = FastAPI(title="Chatbot API", lifespan=lifespan)
 
 origins = ["*"]
@@ -24,13 +27,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- Data Model ---
 class ChatRequest(BaseModel):
     query: str
-    user_context: Dict[str, Any]
+    user_context: Dict[str, Any] = {}
     thread_id: str
 
+# --- Chat Endpoint ---
 @app.post("/chat")
-async def chat_endpoint(req: ChatRequest):
+async def chat_endpoint(req: ChatRequest, request: Request):
+    url_params = dict(request.query_params)
+    req.user_context.update(url_params)
+    
+    # -------------------------------------------------------------
+
     async def event_stream():
         config = {"configurable": {"thread_id": req.thread_id}}
         inputs = {
@@ -48,6 +58,5 @@ async def chat_endpoint(req: ChatRequest):
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 
-# 6. Server Entry Point
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
