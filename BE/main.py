@@ -1,3 +1,4 @@
+# main.py
 import json
 import uvicorn
 from fastapi import FastAPI
@@ -13,8 +14,9 @@ from graph import app as graph_app
 async def lifespan(app: FastAPI):
     yield 
 
-app = FastAPI(title="Chatbot API", lifespan=lifespan)
+app = FastAPI(title="Medical Chatbot API", lifespan=lifespan)
 
+# --- CORS Setup ---
 origins = ["*"]
 app.add_middleware(
     CORSMiddleware,
@@ -24,11 +26,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- Request Model ---
 class ChatRequest(BaseModel):
     query: str
     user_context: Dict[str, Any]
     thread_id: str
 
+# --- Chat Endpoint ---
 @app.post("/chat")
 async def chat_endpoint(req: ChatRequest):
     async def event_stream():
@@ -42,9 +46,10 @@ async def chat_endpoint(req: ChatRequest):
             for node, output in event.items():
                 if output and "messages" in output:
                     last_msg = output["messages"][-1]
-                    if hasattr(last_msg, "content") and last_msg.type == "ai" and last_msg.content:
-                        data_payload = json.dumps(last_msg.content, ensure_ascii=False)
-                        yield f"data: {data_payload}\n\n"
+                    if hasattr(last_msg, "content") and last_msg.content:
+                        if last_msg.type == "ai":
+                            cleaned_content = json.dumps(last_msg.content, ensure_ascii=False)
+                            yield f"data: {cleaned_content}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 

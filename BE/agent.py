@@ -1,7 +1,8 @@
+# agent.py
 from typing import TypedDict, Annotated, List, Dict, Any
 import operator
 from langchain_core.messages import BaseMessage, SystemMessage
-from langgraph.graph import StateGraph
+from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import ToolNode, tools_condition
 
 from llm_config import llm
@@ -11,55 +12,47 @@ class AgentState(TypedDict):
     messages: Annotated[List[BaseMessage], operator.add]
     user_context: Dict[str, Any]
 
-def parse_bool(value):
-    if str(value).lower() == 'true':
-        return True
-    return False
+def create_system_prompt(template: str, context: Dict[str, Any]) -> str:
+    """Helper เพื่อจัดการ Default Value และ Format String"""
+    return template.format(
+        user_name=context.get("user_name", "คนไข้"),
+        disease=context.get("disease", "ไม่ทราบโรคที่เป็น"),
+        current_schedule=context.get("current_schedule", "ยังไม่ได้นัดหมาย"),
+        is_alert=context.get("is_alert", "Negative"),
+        is_cardio=context.get("is_cardio", "Negative"),
+        is_gi_liver=context.get("is_gi_liver", "Negative"),
+        is_infectious=context.get("is_infectious", "Negative")
+    )
 
 def build_agent(llm, tools, system_template):
     llm_with_tools = llm.bind_tools(tools)
     
     def chatbot(state: AgentState):
         ctx = state.get("user_context", {})
-        
-        user_name = ctx.get("user_name", "คุณ")
-        disease = ctx.get("disease", "โรคประจำตัว")
-        current_schedule = ctx.get("current_schedule", "ไม่ระบุ")
-        is_alert = parse_bool(ctx.get("is_alert", "false"))
-        is_cardio = parse_bool(ctx.get("is_cardio", "false"))
-        is_gi_liver = parse_bool(ctx.get("is_gi_liver", "false"))
-        is_infectious = parse_bool(ctx.get("is_infectious", "false"))
-
-        prompt = system_template.format(user_name=user_name,
-                                        disease=disease,
-                                        is_alert=is_alert,                                        
-                                        current_schedule=current_schedule,
-                                        is_cardio=is_cardio,
-                                        is_gi_liver=is_gi_liver,
-                                        is_infectious=is_infectious)
-        
+        prompt = create_system_prompt(system_template, ctx)
         messages = [SystemMessage(content=prompt)] + state["messages"]
         response = llm_with_tools.invoke(messages)
         return {"messages": [response]}
 
     workflow = StateGraph(AgentState)
     workflow.add_node("agent", chatbot)
+    
     if tools:
         workflow.add_node("tools", ToolNode(tools))
         workflow.add_edge("tools", "agent")
         workflow.add_conditional_edges("agent", tools_condition)
     else:
-        workflow.add_edge("agent", "__end__")
+        workflow.add_edge("agent", END)
 
-    workflow.set_entry_point("agent")
+    workflow.add_edge(START, "agent")
     return workflow.compile()
 
 # --- Base Template ---
 base_template = """
 คุณคือผู้เชี่ยวชาญดูแลคนไข้ชื่อ: {user_name} (โรค: {disease} อาการกำเริบ: {is_alert})
-มีนัดหมายกับแพทย์ในวันที่: {current_schedule} (Appointment date)
+มีนัดหมายกับแพทย์ในวันที่: {current_schedule}
 
-อาการอื่นแทรกซ้อน
+ความเสี่ยงของโรคแทรกซ้อน:
 1. โรคเกี่ยวกับหัวใจ: {is_cardio}
 2. โรคเกี่ยวกับระบบหายใจ: {is_gi_liver}
 3. การติดเชื้อ: {is_infectious}
@@ -74,14 +67,13 @@ med_agent = build_agent(llm, med_tools, base_template + "\nหน้าที่
 exercise_agent = build_agent(llm, exercise_tools, base_template + "\nหน้าที่: กายภาพ/พักผ่อน")
 diet_agent = build_agent(llm, diet_tools, base_template + "\nหน้าที่: อาหารการกิน")
 transport_agent = build_agent(llm, transport_tools, base_template + "\nหน้าที่: การเดินทาง")
-general_agent = build_agent(llm, [], base_template + "\nหน้าที่: พูดคุยทั่วไป และตอบข้อมูลเบื้องต้นของผู้ใช้ เช่น ชื่อคนไข้ โรค อาการกำเริบ วันนัดหมาย และอาการอื่นแทรกซ้อน")
+general_agent = build_agent(llm, [], base_template + "\nหน้าที่: พูดคุยทั่วไป")
 
-# New Appointment Agent
 appointment_agent = build_agent(
     llm, 
     appointment_tools, 
     base_template + """
-    \nหน้าที่: จัดการเลื่อนนัดหมาย เมื่อเลื่อนนัดเสร็จแล้ว ให้ผู้ใช้เข้าไปตรวจสอบที่ xxx.com
+    \nหน้าที่: จัดการเลื่อนนัดหมาย
     \nสำคัญ: ถ้าลูกค้ายังไม่ระบุวันใหม่ ให้ถามก่อนเรียก Tool 'reschedule_appointment'
     """
 )

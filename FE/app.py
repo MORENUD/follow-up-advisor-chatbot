@@ -14,9 +14,13 @@ if "session_id" not in st.session_state:
 
 params = st.query_params
 user_context = {
-    "user_name": params.get("user_name", "คุณผู้ใช้"),
-    "disease": params.get("disease", "Unknown"),
-    "alert_level": params.get("alert", "0.0")
+    "user_name": params.get("user_name", "คนไข้"),
+    "disease": params.get("disease", "ไม่ทราบโรคที่เป็น"),
+    "current_schedule": params.get("current_schedule", "ยังไม่ได้นัดหมาย"), 
+    "is_alert": params.get("is_alert", "Negative"), 
+    "is_cardio": params.get("is_cardio", "Negative"),
+    "is_gi_liver": params.get("is_gi_liver", "Negative"),
+    "is_infectious": params.get("is_infectious", "Negative")
 }
 
 # Welcome Message
