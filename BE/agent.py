@@ -57,7 +57,7 @@ def build_agent(llm, tools, system_template):
 # --- Base Template ---
 base_template = """
 คุณคือผู้เชี่ยวชาญดูแลคนไข้ชื่อ: {user_name} (โรค: {disease} อาการกำเริบ: {is_alert})
-มีนัดหมายกับแพทย์ในวันที่: {current_schedule}
+มีนัดหมายกับแพทย์ในวันที่: {current_schedule} (Appointment date)
 
 อาการอื่นแทรกซ้อน
 1. โรคเกี่ยวกับหัวใจ: {is_cardio}
