@@ -70,8 +70,14 @@ def get_diabetes_transport(query: str) -> str:
 @tool
 def reschedule_appointment(new_date: str) -> str:
     """
-    Use this tool ONLY when the user provides a specific 'date' for rescheduling.
-    If no date is provided, ASK the user first.
+    ใช้สำหรับทำการเลื่อนนัดหมายเมื่อทราบวันที่แน่นอนแล้วเท่านั้น
+    
+    Args:
+        new_date: วันที่นัดหมายใหม่ที่ลูกค้าต้องการ (Required)
+        
+    IMPORTANT: 
+    - DO NOT call this tool if 'new_date' is missing or unknown.
+    - If user hasn't provided a date, return a text response asking for the date instead.
     """
     return f"""
     ✅ ระบบดำเนินการเลื่อนนัดให้เรียบร้อยแล้วครับ
