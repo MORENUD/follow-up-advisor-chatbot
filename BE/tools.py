@@ -207,5 +207,4 @@ med_tools = [get_diabetes_medication, get_bp_medication, get_hyperlipidemia_medi
 exercise_tools = [get_diabetes_exercise, get_bp_exercise, get_hyperlipidemia_exercise]
 diet_tools = [get_diabetes_diet, get_bp_diet, get_hyperlipidemia_diet]
 transport_tools = [get_diabetes_transport, get_bp_transport, get_hyperlipidemia_transport]
-
 appointment_tools = [reschedule_appointment]
